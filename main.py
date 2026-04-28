@@ -64,6 +64,7 @@ def choose_category(questions: List[Question]) -> List[Question]:
     table.add_column("Kategorie")
 
     table.add_row("0", "Alle Kategorien")
+
     for index, category in enumerate(categories, start=1):
         table.add_row(str(index), category)
 
@@ -77,6 +78,7 @@ def choose_category(questions: List[Question]) -> List[Question]:
     try:
         selected_category = categories[int(choice) - 1]
         return [q for q in questions if q.category == selected_category]
+
     except (ValueError, IndexError):
         console.print("[red]Ungültige Auswahl. Es werden alle Fragen geladen.[/red]")
         return questions
@@ -106,9 +108,16 @@ def ask_multiple_choice(question: Question) -> bool:
     answer_table.add_row("D", str(question.option_d or ""))
 
     console.print(answer_table)
-    user_answer = Prompt.ask("Deine Antwort", choices=["A", "B", "C", "D"], default="A").upper()
 
-    return user_answer == question.correct_answer
+    while True:
+        user_answer = Prompt.ask("Deine Antwort").upper()
+
+        if user_answer in ["A", "B", "C", "D"]:
+            break
+
+        console.print("[red]Bitte A, B, C oder D eingeben.[/red]")
+
+    return user_answer == question.correct_answer.upper()
 
 
 def ask_text_question(question: Question) -> bool:
@@ -126,30 +135,24 @@ def show_result(is_correct: bool, question: Question) -> None:
     console.print(Panel(question.explanation, title="Erklärung"))
 
 
-def start_quiz() -> None:
-    questions = get_questions()
-
-    if not questions:
-        console.print("[red]Keine Fragen vorhanden.[/red]")
-        return
-
-    questions = choose_category(questions)
-    random.shuffle(questions)
-
-    total_questions = len(questions)
+def run_questions(questions: List[Question], repeat_mode: bool = False) -> tuple[int, List[Question]]:
     correct_answers = 0
+    wrong_questions = []
     test_start = time.time()
+    total_questions = len(questions)
 
     for number, question in enumerate(questions, start=1):
-        if time.time() - test_start >= TOTAL_TEST_TIME_LIMIT:
+        if not repeat_mode and time.time() - test_start >= TOTAL_TEST_TIME_LIMIT:
             console.print("[red]Die Gesamtzeit von 120 Minuten ist abgelaufen.[/red]")
             break
+
+        title = f"Wiederholung {number} von {total_questions}" if repeat_mode else f"Frage {number} von {total_questions}"
 
         console.print()
         console.print(
             Panel(
                 f"[bold]{question.question}[/bold]",
-                title=f"Frage {number} von {total_questions}",
+                title=title,
                 subtitle=f"Kategorie: {question.category} | Zeitlimit: 2 Minuten",
             )
         )
@@ -170,16 +173,21 @@ def start_quiz() -> None:
 
         if is_correct:
             correct_answers += 1
+        else:
+            wrong_questions.append(question)
 
         show_result(is_correct, question)
 
-    answered_questions = min(total_questions, number if 'number' in locals() else 0)
-    percentage = (correct_answers / answered_questions) * 100 if answered_questions else 0
+    return correct_answers, wrong_questions
+
+
+def show_final_result(correct_answers: int, total_questions: int) -> None:
+    percentage = (correct_answers / total_questions) * 100 if total_questions else 0
 
     console.print()
     console.print(
         Panel(
-            f"Richtig: {correct_answers} von {answered_questions}\n"
+            f"Richtig: {correct_answers} von {total_questions}\n"
             f"Ergebnis: {percentage:.0f} %",
             title="Quiz beendet",
         )
@@ -191,6 +199,31 @@ def start_quiz() -> None:
         console.print("[yellow]Du bist auf einem guten Weg[/yellow]")
     else:
         console.print("[green]Super Nerd[/green]")
+
+
+def start_quiz() -> None:
+    questions = get_questions()
+
+    if not questions:
+        console.print("[red]Keine Fragen vorhanden.[/red]")
+        return
+
+    questions = choose_category(questions)
+    random.shuffle(questions)
+
+    correct_answers, wrong_questions = run_questions(questions)
+    show_final_result(correct_answers, len(questions))
+
+    if wrong_questions:
+        console.print()
+        repeat = Prompt.ask("Falsche Fragen wiederholen?", choices=["j", "n"], default="j")
+
+        if repeat == "j":
+            random.shuffle(wrong_questions)
+            console.print(Panel("[bold blue]Wiederholungsmodus startet[/bold blue]"))
+
+            repeat_correct, repeat_wrong = run_questions(wrong_questions, repeat_mode=True)
+            show_final_result(repeat_correct, len(wrong_questions))
 
 
 if __name__ == "__main__":
