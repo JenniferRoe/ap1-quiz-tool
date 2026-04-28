@@ -14,6 +14,7 @@ console = Console()
 QUESTION_TIME_LIMIT = 120
 TOTAL_TEST_TIME_LIMIT = 120 * 60
 DB_PATH = "questions.db"
+WRONG_FILE = "wrong_questions.txt"
 
 
 @dataclass
@@ -54,10 +55,27 @@ def get_categories(questions: List[Question]) -> List[str]:
     return sorted({q.category for q in questions})
 
 
+def choose_mode() -> str:
+    console.print(Panel("[bold cyan]AP1 Quiz Tool[/bold cyan]", subtitle="Modus auswählen"))
+
+    table = Table(title="Lernmodus")
+    table.add_column("Nr.")
+    table.add_column("Modus")
+
+    table.add_row("1", "Normales Quiz")
+    table.add_row("2", "Fehlermodus")
+    table.add_row("q", "Beenden")
+
+    console.print(table)
+
+    choice = Prompt.ask("Was möchtest du starten?", choices=["1", "2", "q"], default="1")
+    return choice
+
+
 def choose_category(questions: List[Question]) -> List[Question]:
     categories = get_categories(questions)
 
-    console.print(Panel("[bold cyan]AP1 Quiz Tool[/bold cyan]", subtitle="Kategorie auswählen"))
+    console.print(Panel("[bold cyan]Kategorie auswählen[/bold cyan]"))
 
     table = Table(title="Verfügbare Kategorien")
     table.add_column("Nr.", justify="right")
@@ -72,6 +90,10 @@ def choose_category(questions: List[Question]) -> List[Question]:
 
     choice = Prompt.ask("Welche Kategorie möchtest du lernen?", default="0")
 
+    if choice.lower() == "q":
+        console.print("[yellow]Quiz wurde beendet.[/yellow]")
+        return []
+
     if choice == "0":
         return questions
 
@@ -82,6 +104,38 @@ def choose_category(questions: List[Question]) -> List[Question]:
     except (ValueError, IndexError):
         console.print("[red]Ungültige Auswahl. Es werden alle Fragen geladen.[/red]")
         return questions
+
+
+def load_wrong_question_texts() -> List[str]:
+    try:
+        with open(WRONG_FILE, "r", encoding="utf-8") as file:
+            lines = file.readlines()
+
+        return [line.strip() for line in lines if line.strip()]
+
+    except FileNotFoundError:
+        return []
+
+
+def save_wrong_question(question: Question) -> None:
+    with open(WRONG_FILE, "a", encoding="utf-8") as file:
+        file.write(question.question + "\n")
+
+
+def clear_wrong_questions() -> None:
+    with open(WRONG_FILE, "w", encoding="utf-8") as file:
+        file.write("")
+
+
+def get_wrong_questions(all_questions: List[Question]) -> List[Question]:
+    wrong_texts = load_wrong_question_texts()
+
+    if not wrong_texts:
+        return []
+
+    wrong_set = set(wrong_texts)
+
+    return [q for q in all_questions if q.question in wrong_set]
 
 
 def check_text_answer(user_answer: str, keywords: Optional[str]) -> bool:
@@ -97,7 +151,7 @@ def check_text_answer(user_answer: str, keywords: Optional[str]) -> bool:
     return matches >= required_matches
 
 
-def ask_multiple_choice(question: Question) -> bool:
+def ask_multiple_choice(question: Question) -> Optional[bool]:
     answer_table = Table(title="Antwortmöglichkeiten")
     answer_table.add_column("Auswahl")
     answer_table.add_column("Antwort")
@@ -110,34 +164,48 @@ def ask_multiple_choice(question: Question) -> bool:
     console.print(answer_table)
 
     while True:
-        user_answer = Prompt.ask("Deine Antwort").upper()
+        user_answer = Prompt.ask("Deine Antwort oder q zum Beenden").upper()
+
+        if user_answer == "Q":
+            return None
 
         if user_answer in ["A", "B", "C", "D"]:
             break
 
-        console.print("[red]Bitte A, B, C oder D eingeben.[/red]")
+        console.print("[red]Bitte A, B, C, D oder q eingeben.[/red]")
 
     return user_answer == question.correct_answer.upper()
 
 
-def ask_text_question(question: Question) -> bool:
-    user_answer = Prompt.ask("Deine Antwort")
+def ask_text_question(question: Question) -> Optional[bool]:
+    user_answer = Prompt.ask("Deine Antwort oder q zum Beenden")
+
+    if user_answer.lower() == "q":
+        return None
+
     return check_text_answer(user_answer, question.keywords)
 
 
-def show_result(is_correct: bool, question: Question) -> None:
+def show_result(is_correct: bool, question: Question, save_wrong: bool = True) -> None:
     if is_correct:
         console.print("[green]Richtig[/green]")
     else:
         console.print("[red]Falsch[/red]")
         console.print(f"[yellow]Richtige Lösung:[/yellow] {question.correct_answer}")
 
+        if save_wrong:
+            save_wrong_question(question)
+
     console.print(Panel(question.explanation, title="Erklärung"))
 
 
-def run_questions(questions: List[Question], repeat_mode: bool = False) -> tuple[int, List[Question]]:
+def run_questions(
+    questions: List[Question],
+    repeat_mode: bool = False,
+    save_wrong: bool = True
+) -> tuple[int, int, bool]:
     correct_answers = 0
-    wrong_questions = []
+    answered_questions = 0
     test_start = time.time()
     total_questions = len(questions)
 
@@ -146,26 +214,37 @@ def run_questions(questions: List[Question], repeat_mode: bool = False) -> tuple
             console.print("[red]Die Gesamtzeit von 120 Minuten ist abgelaufen.[/red]")
             break
 
-        title = f"Wiederholung {number} von {total_questions}" if repeat_mode else f"Frage {number} von {total_questions}"
+        title = (
+            f"Fehlermodus {number} von {total_questions}"
+            if repeat_mode
+            else f"Frage {number} von {total_questions}"
+        )
 
         console.print()
         console.print(
             Panel(
                 f"[bold]{question.question}[/bold]",
                 title=title,
-                subtitle=f"Kategorie: {question.category} | Zeitlimit: 2 Minuten",
+                subtitle=f"Kategorie: {question.category} | Zeitlimit: 2 Minuten | q = abbrechen",
             )
         )
 
         question_start = time.time()
 
         if question.answer_type == "multiple_choice":
-            is_correct = ask_multiple_choice(question)
+            result = ask_multiple_choice(question)
         elif question.answer_type == "text":
-            is_correct = ask_text_question(question)
+            result = ask_text_question(question)
         else:
             console.print("[red]Unbekannter Fragetyp.[/red]")
-            is_correct = False
+            result = False
+
+        if result is None:
+            console.print("[yellow]Quiz wurde abgebrochen.[/yellow]")
+            return correct_answers, answered_questions, True
+
+        answered_questions += 1
+        is_correct = result
 
         if time.time() - question_start > QUESTION_TIME_LIMIT:
             console.print("[red]Zeit abgelaufen.[/red]")
@@ -173,21 +252,19 @@ def run_questions(questions: List[Question], repeat_mode: bool = False) -> tuple
 
         if is_correct:
             correct_answers += 1
-        else:
-            wrong_questions.append(question)
 
-        show_result(is_correct, question)
+        show_result(is_correct, question, save_wrong=save_wrong)
 
-    return correct_answers, wrong_questions
+    return correct_answers, answered_questions, False
 
 
-def show_final_result(correct_answers: int, total_questions: int) -> None:
-    percentage = (correct_answers / total_questions) * 100 if total_questions else 0
+def show_final_result(correct_answers: int, answered_questions: int) -> None:
+    percentage = (correct_answers / answered_questions) * 100 if answered_questions else 0
 
     console.print()
     console.print(
         Panel(
-            f"Richtig: {correct_answers} von {total_questions}\n"
+            f"Richtig: {correct_answers} von {answered_questions}\n"
             f"Ergebnis: {percentage:.0f} %",
             title="Quiz beendet",
         )
@@ -201,29 +278,73 @@ def show_final_result(correct_answers: int, total_questions: int) -> None:
         console.print("[green]Super Nerd[/green]")
 
 
-def start_quiz() -> None:
-    questions = get_questions()
+def start_normal_quiz(all_questions: List[Question]) -> None:
+    questions = choose_category(all_questions)
 
     if not questions:
+        return
+
+    random.shuffle(questions)
+
+    correct_answers, answered_questions, aborted = run_questions(
+        questions,
+        repeat_mode=False,
+        save_wrong=True
+    )
+
+    if answered_questions > 0:
+        show_final_result(correct_answers, answered_questions)
+
+
+def start_error_mode(all_questions: List[Question]) -> None:
+    wrong_questions = get_wrong_questions(all_questions)
+
+    if not wrong_questions:
+        console.print("[green]Keine gespeicherten Fehler vorhanden.[/green]")
+        return
+
+    console.print(Panel("[bold blue]Fehlermodus startet[/bold blue]"))
+    random.shuffle(wrong_questions)
+
+    correct_answers, answered_questions, aborted = run_questions(
+        wrong_questions,
+        repeat_mode=True,
+        save_wrong=False
+    )
+
+    if answered_questions > 0:
+        show_final_result(correct_answers, answered_questions)
+
+    if answered_questions > 0 and not aborted:
+        clear_choice = Prompt.ask(
+            "Fehlerliste nach diesem Durchlauf löschen?",
+            choices=["j", "n"],
+            default="n"
+        )
+
+        if clear_choice == "j":
+            clear_wrong_questions()
+            console.print("[green]Fehlerliste wurde gelöscht.[/green]")
+
+
+def start_quiz() -> None:
+    all_questions = get_questions()
+
+    if not all_questions:
         console.print("[red]Keine Fragen vorhanden.[/red]")
         return
 
-    questions = choose_category(questions)
-    random.shuffle(questions)
+    mode = choose_mode()
 
-    correct_answers, wrong_questions = run_questions(questions)
-    show_final_result(correct_answers, len(questions))
+    if mode == "q":
+        console.print("[yellow]Programm beendet.[/yellow]")
+        return
 
-    if wrong_questions:
-        console.print()
-        repeat = Prompt.ask("Falsche Fragen wiederholen?", choices=["j", "n"], default="j")
+    if mode == "1":
+        start_normal_quiz(all_questions)
 
-        if repeat == "j":
-            random.shuffle(wrong_questions)
-            console.print(Panel("[bold blue]Wiederholungsmodus startet[/bold blue]"))
-
-            repeat_correct, repeat_wrong = run_questions(wrong_questions, repeat_mode=True)
-            show_final_result(repeat_correct, len(wrong_questions))
+    elif mode == "2":
+        start_error_mode(all_questions)
 
 
 if __name__ == "__main__":
