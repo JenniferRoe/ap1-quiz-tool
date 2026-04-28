@@ -1,45 +1,53 @@
-<!doctype html>
-<html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Quizfrage</title>
-  </head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <body>
-    <h1>AP1 Quiz Tool</h1>
+{% extends "base.html" %} {% block content %}
 
-    <h2>{{ question[1] }}</h2>
-    <p><strong>Kategorie:</strong> {{ question[9] }}</p>
+<section class="quiz-wrapper">
+  <div class="quiz-card">
+    <p class="badge">{{ question[9] }}</p>
+    <h1>{{ question[1] }}</h1>
 
     <form action="/check" method="POST">
       <input type="hidden" name="question_id" value="{{ question[0] }}" />
+      <input
+        type="hidden"
+        name="category_filter"
+        value="{{ category or '' }}"
+      />
 
       {% if question[2] == "multiple_choice" %}
-      <p>
+      <label class="answer-option">
         <input type="radio" name="answer" value="A" required />
-        A: {{ question[3] }}
-      </p>
-      <p>
+        <span>A</span>
+        {{ question[3] }}
+      </label>
+
+      <label class="answer-option">
         <input type="radio" name="answer" value="B" />
-        B: {{ question[4] }}
-      </p>
-      <p>
+        <span>B</span>
+        {{ question[4] }}
+      </label>
+
+      <label class="answer-option">
         <input type="radio" name="answer" value="C" />
-        C: {{ question[5] }}
-      </p>
-      <p>
+        <span>C</span>
+        {{ question[5] }}
+      </label>
+
+      <label class="answer-option">
         <input type="radio" name="answer" value="D" />
-        D: {{ question[6] }}
-      </p>
+        <span>D</span>
+        {{ question[6] }}
+      </label>
       {% else %}
-      <textarea name="answer" rows="5" cols="50" required></textarea>
+      <textarea
+        name="answer"
+        placeholder="Schreibe deine Antwort hier..."
+        required
+      ></textarea>
       {% endif %}
 
-      <br /><br />
-      <button type="submit">Antwort prüfen</button>
+      <button class="button primary full" type="submit">Antwort prüfen</button>
     </form>
+  </div>
+</section>
 
-    <br />
-    <a href="/">Zurück zur Übersicht</a>
-  </body>
-</html>
+{% endblock %}

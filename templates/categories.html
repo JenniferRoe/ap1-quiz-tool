@@ -1,0 +1,22 @@
+{% extends "base.html" %} {% block content %}
+
+<section class="page-header">
+  <h1>Fragen üben</h1>
+  <p>Wähle eine Kategorie oder starte mit allen Fragen.</p>
+</section>
+
+<section class="category-grid">
+  <a class="category-card all" href="/quiz">
+    <h2>Alle Fragen</h2>
+    <p>Gemischtes Training aus allen Bereichen.</p>
+  </a>
+
+  {% for category in categories %}
+  <a class="category-card" href="/quiz?category={{ category }}">
+    <h2>{{ category }}</h2>
+    <p>Gezielt diese Kategorie üben.</p>
+  </a>
+  {% endfor %}
+</section>
+
+{% endblock %}

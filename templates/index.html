@@ -1,25 +1,60 @@
-<!doctype html>
-<html lang="de">
-  <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta charset="UTF-8" />
-    <title>AP1 Quiz Tool</title>
-  </head>
-  <body>
-    <h1>AP1 Quiz Tool</h1>
+{% extends "base.html" %} {% block content %}
 
-    <p>Eigenes Lernsystem zur Vorbereitung auf die AP1 Prüfung.</p>
+<section class="hero">
+  <div class="hero-text">
+    <p class="badge">Python · SQLite · Flask</p>
+    <h1>Mein AP1 Lernsystem</h1>
+    <p>
+      Dieses Programm hilft beim Lernen für die AP1 Prüfung zur
+      Fachinformatikerin für Systemintegration. Fragen können nach Kategorien
+      geübt werden. Nach jeder Antwort gibt es eine Erklärung, damit nicht nur
+      auswendig gelernt, sondern verstanden wird.
+    </p>
 
-    <a href="/quiz">
-      <button>Quiz starten</button>
-    </a>
+    <div class="hero-buttons">
+      <a class="button primary" href="/categories">Jetzt lernen</a>
+      <a class="button secondary" href="/all-questions">Fragen ansehen</a>
+    </div>
+  </div>
 
-    <h2>Fragen in der Datenbank</h2>
+  <div class="hero-card">
+    <h2>Projektübersicht</h2>
+    <div class="stat">
+      <span>{{ question_count }}</span>
+      <p>Fragen gespeichert</p>
+    </div>
+    <div class="stat">
+      <span>{{ category_count }}</span>
+      <p>Kategorien</p>
+    </div>
+    <div class="stat">
+      <span>{{ wrong_count }}</span>
+      <p>gespeicherte Fehler</p>
+    </div>
+  </div>
+</section>
 
-    <ul>
-      {% for q in questions %}
-      <li><strong>{{ q[9] }}</strong>: {{ q[1] }}</li>
-      {% endfor %}
-    </ul>
-  </body>
-</html>
+<section class="features">
+  <div class="feature-card">
+    <h3>Kategorien üben</h3>
+    <p>
+      Wähle gezielt Themen wie BWL, Netzwerke, Hardware oder
+      Qualitätsmanagement.
+    </p>
+  </div>
+
+  <div class="feature-card">
+    <h3>Erklärungen nutzen</h3>
+    <p>Nach jeder Antwort wird erklärt, warum die Lösung richtig ist.</p>
+  </div>
+
+  <div class="feature-card">
+    <h3>Lernstand ansehen</h3>
+    <p>
+      Falsch beantwortete Fragen werden gespeichert und nach Kategorien
+      ausgewertet.
+    </p>
+  </div>
+</section>
+
+{% endblock %}

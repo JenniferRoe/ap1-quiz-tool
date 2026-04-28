@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AP1 Quiz Tool</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="logo">AP1 Quiz Tool</div>
+      <nav>
+        <a href="/">Start</a>
+        <a href="/categories">Fragen üben</a>
+        <a href="/all-questions">Alle Fragen</a>
+        <a href="/progress">Lernstand</a>
+      </nav>
+    </header>
+
+    <main>{% block content %}{% endblock %}</main>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block content %}
+
+<section class="page-header">
+  <h1>Lernstand</h1>
+  <p>
+    Hier siehst du, in welchen Kategorien die meisten Fehler gespeichert wurden.
+  </p>
+</section>
+
+<section class="progress-layout">
+  <div class="progress-card">
+    <h2>Gespeicherte Fehler</h2>
+    <span class="big-number">{{ wrong_count }}</span>
+  </div>
+
+  <div class="progress-card">
+    <h2>Schwächste Kategorien</h2>
+
+    {% if category_stats %} {% for category, count in category_stats %}
+    <div class="progress-row">
+      <span>{{ category }}</span>
+      <strong>{{ count }}</strong>
+    </div>
+    {% endfor %} {% else %}
+    <p>Aktuell sind keine Fehler gespeichert.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="question-list">
+  {% for category, question in wrong_entries %}
+  <div class="question-card">
+    <p class="badge">{{ category }}</p>
+    <p>{{ question }}</p>
+  </div>
+  {% endfor %}
+</section>
+
+{% endblock %}
