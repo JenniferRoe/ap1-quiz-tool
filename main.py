@@ -1,80 +1,191 @@
-import sqlite3
 import random
+import sqlite3
+import time
+from dataclasses import dataclass
+from typing import List, Optional
 
-def get_questions():
-    conn = sqlite3.connect("questions.db")
-    cursor = conn.cursor()
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.table import Table
 
-    cursor.execute("""
-    SELECT question, answer_type, option_a, option_b, option_c, option_d,
-           correct_answer, explanation
-    FROM questions
-    """)
+console = Console()
 
-    data = cursor.fetchall()
-    conn.close()
-    return data
+QUESTION_TIME_LIMIT = 120
+TOTAL_TEST_TIME_LIMIT = 120 * 60
+DB_PATH = "questions.db"
 
 
-def start_quiz():
+@dataclass
+class Question:
+    question: str
+    answer_type: str
+    option_a: Optional[str]
+    option_b: Optional[str]
+    option_c: Optional[str]
+    option_d: Optional[str]
+    correct_answer: str
+    explanation: str
+    category: str
+    keywords: Optional[str]
+
+
+def get_questions() -> List[Question]:
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT question, answer_type, option_a, option_b, option_c, option_d,
+                   correct_answer, explanation, category, keywords
+            FROM questions
+            """
+        )
+        rows = cursor.fetchall()
+
+    return [Question(*row) for row in rows]
+
+
+def get_categories(questions: List[Question]) -> List[str]:
+    return sorted({q.category for q in questions})
+
+
+def choose_category(questions: List[Question]) -> List[Question]:
+    categories = get_categories(questions)
+
+    console.print(Panel("[bold cyan]AP1 Quiz Tool[/bold cyan]", subtitle="Kategorie auswählen"))
+
+    table = Table(title="Verfügbare Kategorien")
+    table.add_column("Nr.", justify="right")
+    table.add_column("Kategorie")
+
+    table.add_row("0", "Alle Kategorien")
+    for index, category in enumerate(categories, start=1):
+        table.add_row(str(index), category)
+
+    console.print(table)
+
+    choice = Prompt.ask("Welche Kategorie möchtest du lernen?", default="0")
+
+    if choice == "0":
+        return questions
+
+    try:
+        selected_category = categories[int(choice) - 1]
+        return [q for q in questions if q.category == selected_category]
+    except (ValueError, IndexError):
+        console.print("[red]Ungültige Auswahl. Es werden alle Fragen geladen.[/red]")
+        return questions
+
+
+def check_text_answer(user_answer: str, keywords: Optional[str]) -> bool:
+    if not keywords:
+        return False
+
+    keyword_list = [k.strip().lower() for k in keywords.split(",") if k.strip()]
+    answer = user_answer.lower()
+
+    matches = sum(1 for keyword in keyword_list if keyword in answer)
+    required_matches = max(1, min(2, len(keyword_list)))
+
+    return matches >= required_matches
+
+
+def ask_multiple_choice(question: Question) -> bool:
+    answer_table = Table(title="Antwortmöglichkeiten")
+    answer_table.add_column("Auswahl")
+    answer_table.add_column("Antwort")
+
+    answer_table.add_row("A", str(question.option_a or ""))
+    answer_table.add_row("B", str(question.option_b or ""))
+    answer_table.add_row("C", str(question.option_c or ""))
+    answer_table.add_row("D", str(question.option_d or ""))
+
+    console.print(answer_table)
+    user_answer = Prompt.ask("Deine Antwort", choices=["A", "B", "C", "D"], default="A").upper()
+
+    return user_answer == question.correct_answer
+
+
+def ask_text_question(question: Question) -> bool:
+    user_answer = Prompt.ask("Deine Antwort")
+    return check_text_answer(user_answer, question.keywords)
+
+
+def show_result(is_correct: bool, question: Question) -> None:
+    if is_correct:
+        console.print("[green]Richtig[/green]")
+    else:
+        console.print("[red]Falsch[/red]")
+        console.print(f"[yellow]Richtige Lösung:[/yellow] {question.correct_answer}")
+
+    console.print(Panel(question.explanation, title="Erklärung"))
+
+
+def start_quiz() -> None:
     questions = get_questions()
 
     if not questions:
-        print("Keine Fragen vorhanden.")
+        console.print("[red]Keine Fragen vorhanden.[/red]")
         return
 
+    questions = choose_category(questions)
     random.shuffle(questions)
 
     total_questions = len(questions)
     correct_answers = 0
+    test_start = time.time()
 
-    for q in questions:
-        question, atype, a, b, c, d, correct, explanation = q
+    for number, question in enumerate(questions, start=1):
+        if time.time() - test_start >= TOTAL_TEST_TIME_LIMIT:
+            console.print("[red]Die Gesamtzeit von 120 Minuten ist abgelaufen.[/red]")
+            break
 
-        print("\n---------------------------")
-        print("Frage:", question)
+        console.print()
+        console.print(
+            Panel(
+                f"[bold]{question.question}[/bold]",
+                title=f"Frage {number} von {total_questions}",
+                subtitle=f"Kategorie: {question.category} | Zeitlimit: 2 Minuten",
+            )
+        )
 
-        is_correct = False
+        question_start = time.time()
 
-        if atype == "multiple_choice":
-            print("A:", a)
-            print("B:", b)
-            print("C:", c)
-            print("D:", d)
+        if question.answer_type == "multiple_choice":
+            is_correct = ask_multiple_choice(question)
+        elif question.answer_type == "text":
+            is_correct = ask_text_question(question)
+        else:
+            console.print("[red]Unbekannter Fragetyp.[/red]")
+            is_correct = False
 
-            user = input("Deine Antwort (A/B/C/D): ").upper()
-
-            if user == correct:
-                is_correct = True
-
-        elif atype == "text":
-            user = input("Deine Antwort: ").lower()
-
-            if user in correct.lower():
-                is_correct = True
+        if time.time() - question_start > QUESTION_TIME_LIMIT:
+            console.print("[red]Zeit abgelaufen.[/red]")
+            is_correct = False
 
         if is_correct:
-            print("Richtig")
             correct_answers += 1
-        else:
-            print("Falsch")
-            print("Richtige Antwort:", correct)
 
-        print("Erklärung:", explanation)
+        show_result(is_correct, question)
 
-    percentage = (correct_answers / total_questions) * 100
+    answered_questions = min(total_questions, number if 'number' in locals() else 0)
+    percentage = (correct_answers / answered_questions) * 100 if answered_questions else 0
 
-    print("\n===========================")
-    print("Quiz beendet")
-    print(f"Richtig: {correct_answers} von {total_questions}")
-    print(f"Ergebnis: {percentage:.0f} %")
+    console.print()
+    console.print(
+        Panel(
+            f"Richtig: {correct_answers} von {answered_questions}\n"
+            f"Ergebnis: {percentage:.0f} %",
+            title="Quiz beendet",
+        )
+    )
 
     if percentage < 60:
-        print("Du musst noch viel lernen")
+        console.print("[red]Du musst noch viel lernen[/red]")
     elif percentage < 85:
-        print("Du bist auf einem guten Weg")
+        console.print("[yellow]Du bist auf einem guten Weg[/yellow]")
     else:
-        print("Super Nerd")
+        console.print("[green]Super Nerd[/green]")
 
 
 if __name__ == "__main__":
