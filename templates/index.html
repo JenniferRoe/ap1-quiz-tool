@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <title>AP1 Quiz Tool</title>
+  </head>
+  <body>
+    <h1>AP1 Quiz Tool</h1>
+
+    <h2>Fragen Übersicht</h2>
+
+    <ul>
+      {% for question, category in questions %}
+      <li><b>{{ category }}</b> - {{ question }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
