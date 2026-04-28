@@ -1,6 +1,7 @@
 import random
 import sqlite3
 import time
+from collections import Counter
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -56,20 +57,21 @@ def get_categories(questions: List[Question]) -> List[str]:
 
 
 def choose_mode() -> str:
-    console.print(Panel("[bold cyan]AP1 Quiz Tool[/bold cyan]", subtitle="Modus auswählen"))
+    console.print(Panel("[bold cyan]AP1 Quiz Tool[/bold cyan]", subtitle="Lernmodus auswählen"))
 
-    table = Table(title="Lernmodus")
+    table = Table(title="Menü")
     table.add_column("Nr.")
-    table.add_column("Modus")
+    table.add_column("Funktion")
 
-    table.add_row("1", "Normales Quiz")
+    table.add_row("1", "Normales Lernen")
     table.add_row("2", "Fehlermodus")
+    table.add_row("3", "Schwächen anzeigen")
+    table.add_row("4", "Fehlerliste löschen")
     table.add_row("q", "Beenden")
 
     console.print(table)
 
-    choice = Prompt.ask("Was möchtest du starten?", choices=["1", "2", "q"], default="1")
-    return choice
+    return Prompt.ask("Was möchtest du starten?", choices=["1", "2", "3", "4", "q"], default="1")
 
 
 def choose_category(questions: List[Question]) -> List[Question]:
@@ -106,12 +108,26 @@ def choose_category(questions: List[Question]) -> List[Question]:
         return questions
 
 
-def load_wrong_question_texts() -> List[str]:
+def load_wrong_entries() -> List[tuple[str, str]]:
     try:
         with open(WRONG_FILE, "r", encoding="utf-8") as file:
             lines = file.readlines()
 
-        return [line.strip() for line in lines if line.strip()]
+        entries = []
+
+        for line in lines:
+            line = line.strip()
+
+            if not line:
+                continue
+
+            if "||" in line:
+                category, question_text = line.split("||", 1)
+                entries.append((category.strip(), question_text.strip()))
+            else:
+                entries.append(("Unbekannt", line))
+
+        return entries
 
     except FileNotFoundError:
         return []
@@ -119,7 +135,7 @@ def load_wrong_question_texts() -> List[str]:
 
 def save_wrong_question(question: Question) -> None:
     with open(WRONG_FILE, "a", encoding="utf-8") as file:
-        file.write(question.question + "\n")
+        file.write(f"{question.category}||{question.question}\n")
 
 
 def clear_wrong_questions() -> None:
@@ -128,14 +144,33 @@ def clear_wrong_questions() -> None:
 
 
 def get_wrong_questions(all_questions: List[Question]) -> List[Question]:
-    wrong_texts = load_wrong_question_texts()
+    wrong_entries = load_wrong_entries()
 
-    if not wrong_texts:
+    if not wrong_entries:
         return []
 
-    wrong_set = set(wrong_texts)
+    wrong_question_texts = {question_text for _, question_text in wrong_entries}
 
-    return [q for q in all_questions if q.question in wrong_set]
+    return [q for q in all_questions if q.question in wrong_question_texts]
+
+
+def show_weaknesses() -> None:
+    wrong_entries = load_wrong_entries()
+
+    if not wrong_entries:
+        console.print("[green]Keine gespeicherten Fehler vorhanden.[/green]")
+        return
+
+    category_counter = Counter(category for category, _ in wrong_entries)
+
+    table = Table(title="Deine schwächsten Kategorien")
+    table.add_column("Kategorie")
+    table.add_column("Fehler", justify="right")
+
+    for category, count in category_counter.most_common():
+        table.add_row(category, str(count))
+
+    console.print(table)
 
 
 def check_text_answer(user_answer: str, keywords: Optional[str]) -> bool:
@@ -334,17 +369,32 @@ def start_quiz() -> None:
         console.print("[red]Keine Fragen vorhanden.[/red]")
         return
 
-    mode = choose_mode()
+    while True:
+        mode = choose_mode()
 
-    if mode == "q":
-        console.print("[yellow]Programm beendet.[/yellow]")
-        return
+        if mode == "q":
+            console.print("[yellow]Programm beendet.[/yellow]")
+            return
 
-    if mode == "1":
-        start_normal_quiz(all_questions)
+        if mode == "1":
+            start_normal_quiz(all_questions)
 
-    elif mode == "2":
-        start_error_mode(all_questions)
+        elif mode == "2":
+            start_error_mode(all_questions)
+
+        elif mode == "3":
+            show_weaknesses()
+
+        elif mode == "4":
+            confirm = Prompt.ask(
+                "Fehlerliste wirklich löschen?",
+                choices=["j", "n"],
+                default="n"
+            )
+
+            if confirm == "j":
+                clear_wrong_questions()
+                console.print("[green]Fehlerliste wurde gelöscht.[/green]")
 
 
 if __name__ == "__main__":
