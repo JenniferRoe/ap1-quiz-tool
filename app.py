@@ -239,3 +239,12 @@ create_database()
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+    @app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+@app.route("/imprint")
+def imprint():
+    return render_template("imprint.html")
