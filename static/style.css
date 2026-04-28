@@ -354,3 +354,24 @@ textarea:focus {
     font-size: 38px;
   }
 }
+
+.footer {
+  margin-top: 60px;
+  padding: 30px 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.footer a {
+  margin: 0 10px;
+  color: #4f46e5;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}

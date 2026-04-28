@@ -1,26 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
     <title>AP1 Quiz Tool</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
-  <body>
-    <header class="navbar">
-      <div class="logo">AP1 Quiz Tool</div>
-      <nav>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">AP1 Quiz Tool</div>
+    <nav>
         <a href="/">Start</a>
         <a href="/categories">Fragen üben</a>
         <a href="/all-questions">Alle Fragen</a>
         <a href="/progress">Lernstand</a>
+    </nav>
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+    <p>AP1 Quiz Tool · Lernprojekt für die Umschulung zur Fachinformatikerin für Systemintegration</p>
+    <div>
         <a href="/privacy">Datenschutz</a>
         <a href="/imprint">Impressum</a>
-      </nav>
-    </header>
+    </div>
+</footer>
 
-    <main>{% block content %}{% endblock %}</main>
-  </body>
+</body>
 </html>
