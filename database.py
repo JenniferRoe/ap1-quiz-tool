@@ -20,6 +20,18 @@ def create_database():
     )
     """)
 
+    # Lernstand Tabelle
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        question_id INTEGER,
+        category TEXT,
+        is_correct INTEGER,
+        answered_at TEXT,
+        FOREIGN KEY (question_id) REFERENCES questions(id)
+    )
+    """)
+
     conn.commit()
     conn.close()
 

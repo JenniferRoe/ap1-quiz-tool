@@ -2,8 +2,10 @@ from flask import Flask, render_template, request
 import sqlite3
 import random
 from collections import Counter
+from datetime import datetime
 
 app = Flask(__name__)
+
 DB_PATH = "questions.db"
 WRONG_FILE = "wrong_questions.txt"
 
@@ -65,6 +67,22 @@ def check_text_answer(user_answer, keywords):
     return matches >= required_matches
 
 
+# 🔥 NEU: Fortschritt speichern
+def save_progress(question_id, category, is_correct):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO user_progress (question_id, category, is_correct, answered_at)
+            VALUES (?, ?, ?, ?)
+        """, (
+            question_id,
+            category,
+            1 if is_correct else 0,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
+        conn.commit()
+
+
 def save_wrong_question(category, question_text):
     with open(WRONG_FILE, "a", encoding="utf-8") as file:
         file.write(f"{category}||{question_text}\n")
@@ -89,6 +107,31 @@ def load_wrong_entries():
 
     except FileNotFoundError:
         return []
+
+
+# 🔥 NEU: Statistik aus DB
+def get_progress_stats():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM user_progress")
+        total_answers = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM user_progress WHERE is_correct = 1")
+        correct_answers = cursor.fetchone()[0]
+
+        cursor.execute("""
+            SELECT category, COUNT(*)
+            FROM user_progress
+            WHERE is_correct = 0
+            GROUP BY category
+            ORDER BY COUNT(*) DESC
+        """)
+        weak_categories = cursor.fetchall()
+
+    percentage = round((correct_answers / total_answers) * 100) if total_answers else 0
+
+    return total_answers, correct_answers, percentage, weak_categories
 
 
 @app.route("/")
@@ -124,7 +167,12 @@ def quiz():
         return "Keine Fragen vorhanden."
 
     question = random.choice(questions)
-    return render_template("quiz.html", question=question, category=category)
+
+    return render_template(
+        "quiz.html",
+        question=question,
+        category=category
+    )
 
 
 @app.route("/check", methods=["POST"])
@@ -149,6 +197,9 @@ def check():
     else:
         is_correct = check_text_answer(user_answer, keywords)
 
+    # 🔥 Fortschritt speichern
+    save_progress(question[0], category, is_correct)
+
     if not is_correct:
         save_wrong_question(category, question[1])
 
@@ -171,14 +222,14 @@ def all_questions():
 
 @app.route("/progress")
 def progress():
-    wrong_entries = load_wrong_entries()
-    counter = Counter(category for category, _ in wrong_entries)
+    total_answers, correct_answers, percentage, weak_categories = get_progress_stats()
 
     return render_template(
         "progress.html",
-        wrong_entries=wrong_entries,
-        category_stats=counter.most_common(),
-        wrong_count=len(wrong_entries)
+        total_answers=total_answers,
+        correct_answers=correct_answers,
+        percentage=percentage,
+        weak_categories=weak_categories
     )
 
 
