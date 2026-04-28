@@ -1,16 +1,24 @@
 <!doctype html>
-<html>
+<html lang="de">
   <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8" />
     <title>AP1 Quiz Tool</title>
   </head>
   <body>
     <h1>AP1 Quiz Tool</h1>
 
-    <h2>Fragen Übersicht</h2>
+    <p>Eigenes Lernsystem zur Vorbereitung auf die AP1 Prüfung.</p>
+
+    <a href="/quiz">
+      <button>Quiz starten</button>
+    </a>
+
+    <h2>Fragen in der Datenbank</h2>
 
     <ul>
-      {% for question, category in questions %}
-      <li><b>{{ category }}</b> - {{ question }}</li>
+      {% for q in questions %}
+      <li><strong>{{ q[9] }}</strong>: {{ q[1] }}</li>
       {% endfor %}
     </ul>
   </body>

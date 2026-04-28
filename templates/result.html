@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ergebnis</title>
+  </head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <body>
+    <h1>Ergebnis</h1>
+
+    <h2>{{ question[1] }}</h2>
+
+    {% if is_correct %}
+    <h3 style="color: green">Richtig</h3>
+    {% else %}
+    <h3 style="color: red">Falsch</h3>
+    <p><strong>Richtige Lösung:</strong> {{ correct_answer }}</p>
+    {% endif %}
+
+    <p><strong>Deine Antwort:</strong> {{ user_answer }}</p>
+
+    <h3>Erklärung</h3>
+    <p>{{ explanation }}</p>
+
+    <a href="/quiz">
+      <button>Nächste Frage</button>
+    </a>
+
+    <br /><br />
+    <a href="/">Zurück zur Startseite</a>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quizfrage</title>
+  </head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <body>
+    <h1>AP1 Quiz Tool</h1>
+
+    <h2>{{ question[1] }}</h2>
+    <p><strong>Kategorie:</strong> {{ question[9] }}</p>
+
+    <form action="/check" method="POST">
+      <input type="hidden" name="question_id" value="{{ question[0] }}" />
+
+      {% if question[2] == "multiple_choice" %}
+      <p>
+        <input type="radio" name="answer" value="A" required />
+        A: {{ question[3] }}
+      </p>
+      <p>
+        <input type="radio" name="answer" value="B" />
+        B: {{ question[4] }}
+      </p>
+      <p>
+        <input type="radio" name="answer" value="C" />
+        C: {{ question[5] }}
+      </p>
+      <p>
+        <input type="radio" name="answer" value="D" />
+        D: {{ question[6] }}
+      </p>
+      {% else %}
+      <textarea name="answer" rows="5" cols="50" required></textarea>
+      {% endif %}
+
+      <br /><br />
+      <button type="submit">Antwort prüfen</button>
+    </form>
+
+    <br />
+    <a href="/">Zurück zur Übersicht</a>
+  </body>
+</html>
