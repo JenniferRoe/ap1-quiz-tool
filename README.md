@@ -1,3 +1,4 @@
+![Screenshot](screenshot.png)
 AP1 Quiz Tool
 
 Das Projekt ist während meiner Umschulung zur Fachinformatikerin für Systemintegration entstanden. Ziel war es, ein eigenes Lernsystem für die AP1 Prüfung zu entwickeln, das nicht nur Fragen stellt, sondern auch wirklich beim Verstehen hilft.
