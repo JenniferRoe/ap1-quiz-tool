@@ -31,18 +31,23 @@ class Question:
 
 
 def get_questions() -> List[Question]:
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT question, answer_type, option_a, option_b, option_c, option_d,
-                   correct_answer, explanation, category, keywords
-            FROM questions
-            """
-        )
-        rows = cursor.fetchall()
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT question, answer_type, option_a, option_b, option_c, option_d,
+                       correct_answer, explanation, category, keywords
+                FROM questions
+                """
+            )
+            rows = cursor.fetchall()
 
-    return [Question(*row) for row in rows]
+        return [Question(*row) for row in rows]
+
+    except Exception as e:
+        console.print(f"[red]Fehler beim Laden der Datenbank: {e}[/red]")
+        return []
 
 
 def get_categories(questions: List[Question]) -> List[str]:
