@@ -1024,3 +1024,233 @@ insert_question(
     "BWL",
     "200,zinsen"
 )
+
+insert_question(
+    "Was ist das Ziel der IST-Analyse?",
+    "multiple_choice",
+    "Neue Hardware kaufen",
+    "Aktuellen Zustand erfassen",
+    "Sicherheitskonzept erstellen",
+    "Netzwerk aufbauen",
+    "B",
+    "Die IST-Analyse erfasst den aktuellen Stand der IT.",
+    "Systemintegration",
+    "ist,analyse,aktueller zustand"
+)
+
+insert_question(
+    "Was gehört NICHT zur Anforderungsanalyse?",
+    "multiple_choice",
+    "Kundenwünsche erfassen",
+    "Bestehende Systeme analysieren",
+    "Hardware direkt bestellen",
+    "Anforderungen dokumentieren",
+    "C",
+    "Hardware wird erst nach der Planung ausgewählt.",
+    "Systemintegration",
+    "anforderung,analyse,planung"
+)
+
+insert_question(
+    "Was beschreibt der SOLL-Zustand?",
+    "multiple_choice",
+    "Aktuelle Infrastruktur",
+    "Zukünftige Anforderungen",
+    "Alte Systeme",
+    "Fehleranalyse",
+    "B",
+    "Der SOLL-Zustand beschreibt das Zielsystem.",
+    "Systemintegration",
+    "soll,zustand,ziel"
+)
+
+insert_question(
+    "Welche Maßnahme dient der Netzwerksicherheit?",
+    "multiple_choice",
+    "Switch austauschen",
+    "VLAN einsetzen",
+    "Bildschirmgröße ändern",
+    "Drucker installieren",
+    "B",
+    "VLAN trennt Netzwerke logisch und erhöht die Sicherheit.",
+    "Systemintegration",
+    "vlan,sicherheit,netzwerk"
+)
+
+insert_question(
+    "Was ist ein VPN?",
+    "multiple_choice",
+    "Lokales Netzwerk",
+    "Verschlüsselte Verbindung",
+    "Hardwaregerät",
+    "Betriebssystem",
+    "B",
+    "VPN stellt eine sichere, verschlüsselte Verbindung her.",
+    "Systemintegration",
+    "vpn,verschlüsselung,sicherheit"
+)
+
+insert_question(
+    "Was gehört zur Systemarchitektur?",
+    "multiple_choice",
+    "Mitarbeiteranzahl",
+    "Hardware- und Softwareauswahl",
+    "Urlaubsplanung",
+    "Gehaltsabrechnung",
+    "B",
+    "Systemarchitektur umfasst technische Komponenten.",
+    "Systemintegration",
+    "systemarchitektur,hardware,software"
+)
+
+insert_question(
+    "Warum ist die Testphase wichtig?",
+    "multiple_choice",
+    "Um Zeit zu verschwenden",
+    "Um Fehler zu finden",
+    "Um Hardware zu kaufen",
+    "Um Dokumentation zu vermeiden",
+    "B",
+    "Tests stellen sicher, dass das System funktioniert.",
+    "Systemintegration",
+    "testphase,fehler,prüfung"
+)
+
+insert_question(
+    "Was bedeutet Integration?",
+    "multiple_choice",
+    "Systeme löschen",
+    "Systeme verbinden",
+    "Daten ignorieren",
+    "Software deinstallieren",
+    "B",
+    "Integration bedeutet Einbindung in bestehende Systeme.",
+    "Systemintegration",
+    "integration,systeme,verbindung"
+)
+
+insert_question(
+    "Was gehört zur Dokumentation?",
+    "multiple_choice",
+    "Nur Passwörter",
+    "Gesamter Projektablauf",
+    "Nur Hardwareliste",
+    "Nur Rechnungen",
+    "B",
+    "Dokumentation umfasst alle Projektschritte.",
+    "Systemintegration",
+    "dokumentation,projekt,prozess"
+)
+
+insert_question(
+    "Was ist ein Sicherheitsrisiko?",
+    "multiple_choice",
+    "VLAN",
+    "Unverschlüsselte Verbindung",
+    "Firewall",
+    "Backup",
+    "B",
+    "Unverschlüsselte Daten können abgefangen werden.",
+    "Systemintegration",
+    "sicherheit,risiko,verschlüsselung"
+)
+
+insert_question(
+    "Was ist der Unterschied zwischen IST- und SOLL-Zustand?",
+    "text",
+    None, None, None, None,
+    "Ist ist aktuell, Soll ist Ziel",
+    "IST = aktueller Zustand, SOLL = gewünschter Zielzustand.",
+    "Systemintegration",
+    "ist,soll,unterschied"
+)
+
+insert_question(
+    "Warum ist die IST-Analyse notwendig?",
+    "text",
+    None, None, None, None,
+    "Grundlage für Planung",
+    "Ohne IST keine sinnvolle Planung möglich.",
+    "Systemintegration",
+    "ist,analyse,planung"
+)
+
+insert_question(
+    "Nenne 3 typische Sicherheitsmaßnahmen in einem Netzwerk.",
+    "text",
+    None, None, None, None,
+    "VPN Firewall VLAN",
+    "Typische Maßnahmen sind VPN, Firewall und VLAN.",
+    "Systemintegration",
+    "vpn,firewall,vlan"
+)
+
+insert_question(
+    "Welche Aufgaben hat ein Fachinformatiker bei der Systemplanung?",
+    "text",
+    None, None, None, None,
+    "Analyse Planung Umsetzung",
+    "Er analysiert, plant, setzt um und dokumentiert.",
+    "Systemintegration",
+    "planung,analyse,umsetzung"
+)
+
+insert_question(
+    "Was gehört alles zur Systemarchitektur?",
+    "text",
+    None, None, None, None,
+    "Hardware Software Netzwerk",
+    "Besteht aus Hardware, Software und Netzwerkstruktur.",
+    "Systemintegration",
+    "systemarchitektur,hardware,netzwerk"
+)
+
+insert_question(
+    "Warum darf man Systeme nicht ohne Tests übergeben?",
+    "text",
+    None, None, None, None,
+    "Fehler vermeiden",
+    "Ohne Tests können Fehler unentdeckt bleiben.",
+    "Systemintegration",
+    "test,fehler,prüfung"
+)
+
+insert_question(
+    "Was bedeutet Integration in der IT?",
+    "text",
+    None, None, None, None,
+    "Einbindung in bestehende Systeme",
+    "Integration bedeutet, neue Systeme einzubinden.",
+    "Systemintegration",
+    "integration,einbindung,systeme"
+)
+
+insert_question(
+    "Nenne die 6 Schritte der Systemplanung in richtiger Reihenfolge.",
+    "text",
+    None, None, None, None,
+    "Ist Soll Sicherheit Komponenten Test Übergabe",
+    "Die Schritte sind IST, SOLL, Sicherheit, Auswahl, Test, Übergabe.",
+    "Systemintegration",
+    "prozess,planung,schritte"
+)
+
+insert_question(
+    "Warum ist Dokumentation wichtig?",
+    "text",
+    None, None, None, None,
+    "Nachvollziehbarkeit",
+    "Dokumentation macht Prozesse verständlich und nachvollziehbar.",
+    "Systemintegration",
+    "dokumentation,nachvollziehbarkeit"
+)
+
+insert_question(
+    "Welche Probleme entstehen ohne Sicherheitsmaßnahmen?",
+    "text",
+    None, None, None, None,
+    "Datenverlust Hacker",
+    "Ohne Sicherheit drohen Datenverlust und Angriffe.",
+    "Systemintegration",
+    "sicherheit,risiko,hacker"
+)
