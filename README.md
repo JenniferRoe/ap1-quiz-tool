@@ -58,12 +58,6 @@ python app.py
 Dann im Browser öffnen:
 http://127.0.0.1:5000
 
-Screenshot
-
-Hier ein Beispiel der Anwendung im Einsatz
-
-(screenshot.png einfügen)
-
 Ziel des Projekts
 
 Das Projekt zeigt, wie ich Inhalte aus der Umschulung praktisch umsetze und eigenständig erweitere.
